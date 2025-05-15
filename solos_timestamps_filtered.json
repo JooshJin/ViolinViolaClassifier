@@ -1,5 +1,3 @@
-//solos timestamps, just the violin and viola dataset. Credits: https://github.com/JuanFMontesinos/Solos/blob/master/Solos/json_files/solos_timestamps.json
-// Contains Youtube timestamps for Violin and Viola excerpts
 {
   "Violin": {
     "-uV87ToKCcM": [[81, 5181]],
