@@ -1,5 +1,3 @@
-// data from solos dataset: https://github.com/JuanFMontesinos/Solos/tree/master/Solos/json_files
-// filtered to only include the violin and viola data: contains Youtube URLs
 {
   "Violin": [
     "JrNn2Ns7k-g",
