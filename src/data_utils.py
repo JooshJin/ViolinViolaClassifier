@@ -25,29 +25,41 @@ def download_and_trim_all(ids: dict, stamps: dict, out_dir: str, fps: int = 30):
     Download and trim all Youtube segments using timestamps and directories. Saved under out_dir/Violin/ and out_dir/Viola/ as MP4s.
     """
        
-    os.makedirs(out_dir, exist_ok = True)
+    os.makedirs(out_dir, exist_ok=True)
     for category, vids in ids.items():
         cat_dir = Path(out_dir) / category
-        cat_dir.mkdir(parents = True, exist_ok = True)
-        
+        cat_dir.mkdir(parents=True, exist_ok=True)
         for vid in vids:
             segments = stamps[category].get(vid, [])
-            
             for i, (start_f, end_f) in enumerate(segments):
-                start_s = start_f / fps
-                end_s = end_f / fps
+                start_s, end_s = start_f/fps, end_f/fps
                 out_path = cat_dir / f"{vid}_{i}.mp4"
-                
                 if out_path.exists():
                     continue
+
                 cmd = [
                     'yt-dlp',
                     f'https://www.youtube.com/watch?v={vid}',
                     '--output', str(out_path),
                     '--download-sections', f'*{start_s:.1f}-{end_s:.1f}',
-                    '--format', 'bestvideo+bestaudio'
+                    '--format', 'bestvideo+bestaudio',
+                    '--merge-output-format', 'mp4'        # ensure merged MP4
                 ]
-                subprocess.run(cmd, check=True)
+                try:
+                    subprocess.run(cmd, check=True)
+                except subprocess.CalledProcessError as e:
+                    print(f"Failed to download {vid} segment {i}: {e}")
+                    fallback = [
+                        'yt-dlp',
+                        f'https://www.youtube.com/watch?v={vid}',
+                        '--output', str(out_path).replace('.mp4','.mkv'),
+                        '--download-sections', f'*{start_s:.1f}-{end_s:.1f}',
+                        '--format', 'mp4'  # or just audio
+                    ]
+                    try:
+                        subprocess.run(fallback, check=True)
+                    except subprocess.CalledProcessError:
+                        print(f"    also failed fallback for {vid}, skipping.")
                 
 def preprocess_audio(raw_dir: str, proc_dir: str, sr: int = 22050, duration: float = 5.0):
     """
