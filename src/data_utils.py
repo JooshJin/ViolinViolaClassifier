@@ -5,8 +5,6 @@ from pathlib import Path
 import librosa
 import soundfile as sf
 
-#try push with actual code this time?
-
 def load_manifests (ids_path: str, ts_path: str):
     """
     Loads filtered JSON manifests for the IDs and timestamps.
