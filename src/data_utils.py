@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 import librosa
 import soundfile as sf
+import yt_dlp
 
 def load_manifests (ids_path: str, ts_path: str):
     """
@@ -20,32 +21,37 @@ def load_manifests (ids_path: str, ts_path: str):
         stamps = json.load(f)
     return ids, stamps
 
-def download_full_audio(ids: dict, out_dir: str):
+def download_full_audio_api(ids: dict, out_dir: str, sr: int = 22050):
     """
-    For each video ID, download only the audio track in its native format.
-    Saves to out_dir/<category>/<video_id>.<ext>.
+    Download & convert each YouTube ID’s audio into WAV files under out_dir/category/vid.wav
+    New strat using yt_dlp to convert easier to wav
     """
     os.makedirs(out_dir, exist_ok=True)
     for category, vids in ids.items():
         cat_dir = Path(out_dir) / category
         cat_dir.mkdir(parents=True, exist_ok=True)
         for vid in vids:
-            # pattern: data/raw_full/Violin/JrNn2Ns7k-g.*
-            pattern = str(cat_dir / f"{vid}.*")
-            # skip if any matching file exists
-            if any(cat_dir.glob(f"{vid}.*")):
+            out_path = cat_dir / f"{vid}.wav"
+            if out_path.exists():
                 continue
-            cmd = [
-                'yt-dlp',
-                f'https://www.youtube.com/watch?v={vid}',
-                '--format', 'bestaudio',
-                '--output', str(cat_dir / '%(id)s.%(ext)s')
-            ]
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': str(cat_dir / f'{vid}.%(ext)s'),
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'wav',
+                    'preferredquality': '192',
+                }],
+                # suppress progress bar for cleaner logs
+                'quiet': True,
+                'no_warnings': True,
+            }
             try:
-                subprocess.run(cmd, check=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to download audio for {vid}: {e}")
-
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([f'https://www.youtube.com/watch?v={vid}'])
+                print(f"Downloaded & converted: {vid}")
+            except Exception as e:
+                print(f"Failed to download {vid}: {e}")
 
 def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, fps: int = 30, sr: int = 22050):
     """
