@@ -20,75 +20,66 @@ def load_manifests (ids_path: str, ts_path: str):
         stamps = json.load(f)
     return ids, stamps
 
-def download_and_trim_all(ids: dict, stamps: dict, out_dir: str, fps: int = 30):
+def download_full_audio(ids: dict, out_dir: str, sr: int = 22050):
     """
-    Download and trim all Youtube segments using timestamps and directories. Saved under out_dir/Violin/ and out_dir/Viola/ as MP4s.
+    Download full audio for each YouTube ID as WAV into out_dir/category/vid.wav
     """
-       
     os.makedirs(out_dir, exist_ok=True)
     for category, vids in ids.items():
         cat_dir = Path(out_dir) / category
         cat_dir.mkdir(parents=True, exist_ok=True)
         for vid in vids:
-            segments = stamps[category].get(vid, [])
-            for i, (start_f, end_f) in enumerate(segments):
-                start_s, end_s = start_f/fps, end_f/fps
-                out_path = cat_dir / f"{vid}_{i}.mp4"
+            out_path = cat_dir / f"{vid}.wav"
+            if out_path.exists():
+                continue
+            cmd = [
+                'yt-dlp',
+                f'https://www.youtube.com/watch?v={vid}',
+                '--extract-audio',
+                '--audio-format', 'wav',
+                '--output', str(out_path.with_suffix(''))
+            ]
+            try:
+                subprocess.run(cmd, check=True)
+            except subprocess.CalledProcessError:
+                print(f"Failed to download audio for {vid}")
+
+
+def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, fps: int = 30, sr: int = 22050):
+    """
+    Slice full WAVs into timestamped segments and save into out_dir/category/vid_index.wav
+    """
+    os.makedirs(out_dir, exist_ok=True)
+    for category in ids:
+        full_dir = Path(raw_dir) / category
+        seg_dir = Path(out_dir) / category
+        seg_dir.mkdir(parents=True, exist_ok=True)
+        for vid in ids[category]:
+            full_path = full_dir / f"{vid}.wav"
+            if not full_path.exists():
+                continue
+            audio, _ = librosa.load(full_path, sr=sr)
+            for i, (start_f, end_f) in enumerate(stamps[category].get(vid, [])):
+                start_s = start_f / fps
+                end_s = end_f / fps
+                start_i = int(start_s * sr)
+                end_i = int(end_s * sr)
+                clip = audio[start_i:end_i]
+                out_path = seg_dir / f"{vid}_{i}.wav"
                 if out_path.exists():
                     continue
+                sf.write(out_path, clip, sr)
 
-                cmd = [
-                    'yt-dlp',
-                    f'https://www.youtube.com/watch?v={vid}',
-                    '--output', str(out_path),
-                    '--download-sections', f'*{start_s:.1f}-{end_s:.1f}',
-                    '--format', 'bestvideo+bestaudio',
-                    '--merge-output-format', 'mp4'        # ensure merged MP4
-                ]
-                try:
-                    subprocess.run(cmd, check=True)
-                except subprocess.CalledProcessError as e:
-                    print(f"Failed to download {vid} segment {i}: {e}")
-                    fallback = [
-                        'yt-dlp',
-                        f'https://www.youtube.com/watch?v={vid}',
-                        '--output', str(out_path).replace('.mp4','.mkv'),
-                        '--download-sections', f'*{start_s:.1f}-{end_s:.1f}',
-                        '--format', 'mp4'  # or just audio
-                    ]
-                    try:
-                        subprocess.run(fallback, check=True)
-                    except subprocess.CalledProcessError:
-                        print(f"    also failed fallback for {vid}, skipping.")
-                
-def preprocess_audio(raw_dir: str, proc_dir: str, sr: int = 22050, duration: float = 5.0):
-    """
-    Convert each mp4 in raw_dir to a fixed length WAV in proc_dir
-    """
-    for category in os.listdir(raw_dir):
-        in_cat = Path(raw_dir) / category
-        out_cat = Path(proc_dir) / category
-        out_cat.mkdir(parents = True, exist_ok = True)
-        for mp4 in in_cat.glob('*.mp4'):
-            wav_path = out_cat / (mp4.stem + '.wav')
-            if wav_path.exists():
-                continue
-            audio, _ = librosa.load(mp4, sr=sr, duration=duration)
-            sf.write(wav_path, audio, sr)
-            
+
 def load_processed_dataset(proc_dir: str):
     """
-    Load all WAVs from proc_dir/category/ into arrays and labels
-
-    returns:
-        X: List[np.ndarray], y: List[int]
-        Categories are mapped by alphabetical order of subfolders.
+    Load WAV clips from proc_dir/category into X (audio arrays) and y (labels)
+    Categories mapped alphabetically.
     """
     X, y = [], []
     label_map = {cat: idx for idx, cat in enumerate(sorted(os.listdir(proc_dir)))}
     for cat, idx in label_map.items():
-        folder = Path(proc_dir) / cat
-        for wav in folder.glob('*.wav'):
+        for wav in Path(proc_dir).joinpath(cat).glob('*.wav'):
             audio, _ = librosa.load(wav, sr=None)
             X.append(audio)
             y.append(idx)
