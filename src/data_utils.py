@@ -20,50 +20,53 @@ def load_manifests (ids_path: str, ts_path: str):
         stamps = json.load(f)
     return ids, stamps
 
-def download_full_audio(ids: dict, out_dir: str, sr: int = 22050):
+def download_full_audio(ids: dict, out_dir: str):
     """
-    Download full audio for each YouTube ID as WAV into out_dir/category/vid.wav
+    For each video ID, download only the audio track in its native format.
+    Saves to out_dir/<category>/<video_id>.<ext>.
     """
     os.makedirs(out_dir, exist_ok=True)
     for category, vids in ids.items():
         cat_dir = Path(out_dir) / category
         cat_dir.mkdir(parents=True, exist_ok=True)
         for vid in vids:
-            out_path = cat_dir / f"{vid}.wav"
-            if out_path.exists():
+            # pattern: data/raw_full/Violin/JrNn2Ns7k-g.*
+            pattern = str(cat_dir / f"{vid}.*")
+            # skip if any matching file exists
+            if any(cat_dir.glob(f"{vid}.*")):
                 continue
             cmd = [
                 'yt-dlp',
                 f'https://www.youtube.com/watch?v={vid}',
-                '--extract-audio',
-                '--audio-format', 'wav',
-                '--output', str(out_path.with_suffix(''))
+                '--format', 'bestaudio',
+                '--output', str(cat_dir / '%(id)s.%(ext)s')
             ]
             try:
                 subprocess.run(cmd, check=True)
-            except subprocess.CalledProcessError:
-                print(f"Failed to download audio for {vid}")
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to download audio for {vid}: {e}")
 
 
 def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, fps: int = 30, sr: int = 22050):
     """
-    Slice full WAVs into timestamped segments and save into out_dir/category/vid_index.wav
+    Load whichever <video_id>.<ext> exists, slice by timestamp, write .wav clips.
     """
     os.makedirs(out_dir, exist_ok=True)
     for category in ids:
-        full_dir = Path(raw_dir) / category
         seg_dir = Path(out_dir) / category
         seg_dir.mkdir(parents=True, exist_ok=True)
+        full_dir = Path(raw_dir) / category
         for vid in ids[category]:
-            full_path = full_dir / f"{vid}.wav"
-            if not full_path.exists():
+            # find the downloaded file (any extension)
+            files = list(full_dir.glob(f"{vid}.*"))
+            if not files:
+                print(f"No raw audio found for {vid}, skipping segments.")
                 continue
+            full_path = files[0]
             audio, _ = librosa.load(full_path, sr=sr)
-            for i, (start_f, end_f) in enumerate(stamps[category].get(vid, [])):
-                start_s = start_f / fps
-                end_s = end_f / fps
-                start_i = int(start_s * sr)
-                end_i = int(end_s * sr)
+            for i, (sf_, ef_) in enumerate(stamps[category].get(vid, [])):
+                start_i = int((sf_/fps) * sr)
+                end_i   = int((ef_/fps) * sr)
                 clip = audio[start_i:end_i]
                 out_path = seg_dir / f"{vid}_{i}.wav"
                 if out_path.exists():
