@@ -26,19 +26,16 @@ The pipeline includes data download, segmentation, feature extraction, model tra
 
 ## Installation
 
-1. Clone this repository:
+All done through Colab:
+```
+!git clone https://github.com/JooshJin/ViolinViolaClassifier.git
+%cd ViolinViolaClassifier
 
-   ```bash
-   git clone https://github.com/yourusername/ViolinViolaClassifier.git
-   cd ViolinViolaClassifier
-   ```
-2. Create a virtual environment and install dependencies:
+# Install dependencies
+!pip install yt-dlp librosa scikit-learn matplotlib
+```
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # or `venv\Scripts\activate` on Windows
-   pip install -r requirements.txt
-   ```
+
 
 ---
 
