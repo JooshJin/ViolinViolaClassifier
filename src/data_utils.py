@@ -82,7 +82,7 @@ def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, sr: int =
                 print(f"Saved {outp.name} [{start_sec:.1f}s–{end_sec:.1f}s]")
                 
 # Moved from main noteboook
-def segment_stems(src_dir, dst_dir, sr=22050, clip_dur=5.0):
+def segment_stems(src_dir, dst_dir, sr=22050, clip_dur=10.0):
     os.makedirs(dst_dir, exist_ok=True)
     clip_len = int(sr * clip_dur)
     for wav_path in glob.glob(f"{src_dir}/*.wav"):
