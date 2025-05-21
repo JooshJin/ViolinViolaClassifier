@@ -34,7 +34,17 @@ All done through Colab:
 # Install dependencies
 !pip install yt-dlp librosa scikit-learn matplotlib
 ```
-
+### Check that versions are accurate:
+```
+Python version: 3.11.12
+numpy version: 2.0.2
+librosa version: 0.11.0
+scikit-learn version: 1.6.1
+matplotlib version: 3.10.0
+pandas version: 2.2.2
+tqdm version: 4.67.1
+joblib version: 1.5.0
+```
 
 
 ---
@@ -42,6 +52,8 @@ All done through Colab:
 ## Data Preparation
 
 ### 1) URMP Dataset (Violin & Viola recordings)
+
+link to folders in drive (only when downloading from github, not applicable for class submission): [https://drive.google.com/drive/folders/1yqhQIs22p_8s-hsgIW2-WbmEn3FSZfF7?usp=sharing](https://drive.google.com/drive/folders/1yqhQIs22p_8s-hsgIW2-WbmEn3FSZfF7?usp=sharing)
 
 1. Unzip the ViolinViolaData folder (contains URMP dataset) and store in Google Drive under:
 
