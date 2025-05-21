@@ -55,29 +55,24 @@ def download_full_audio_api(ids: dict, out_dir: str, sr: int = 22050):
 
 def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, fps: int = 30, sr: int = 22050):
     """
-    Load whichever <video_id>.<ext> exists, slice by timestamp, write .wav clips.
+    Load whichever <video_id>.<ext> exists, slice by timestamp in seconds, write .wav clips.
     """
     os.makedirs(out_dir, exist_ok=True)
-    for category in ids:
-        seg_dir = Path(out_dir) / category
-        seg_dir.mkdir(parents=True, exist_ok=True)
-        full_dir = Path(raw_dir) / category
-        for vid in ids[category]:
-            # find the downloaded file (any extension)
-            files = list(full_dir.glob(f"{vid}.*"))
-            if not files:
-                print(f"No raw audio found for {vid}, skipping segments.")
-                continue
-            full_path = files[0]
+    for cat in ids:
+        in_cat = Path(raw_dir)/cat
+        out_cat = Path(out_dir)/cat
+        out_cat.mkdir(parents=True, exist_ok=True)
+        for vid in ids[cat]:
+            full_path = in_cat/f"{vid}.wav"      
+            if not full_path.exists(): continue
             audio, _ = librosa.load(full_path, sr=sr)
-            for i, (sf_, ef_) in enumerate(stamps[category].get(vid, [])):
-                start_i = int((sf_/fps) * sr)
-                end_i   = int((ef_/fps) * sr)
-                clip = audio[start_i:end_i]
-                out_path = seg_dir / f"{vid}_{i}.wav"
-                if out_path.exists():
-                    continue
-                sf.write(out_path, clip, sr)
+            for i, (start_s, end_s) in enumerate(stamps[cat][vid]):
+                start_i = int(start_s * sr)
+                end_i   = int(end_s   * sr)
+                clip    = audio[start_i:end_i]
+                out_path= out_cat/f"{vid}_{i}.wav"
+                if not out_path.exists():
+                    sf.write(out_path, clip, sr)
 
 
 def load_processed_dataset(proc_dir: str):
