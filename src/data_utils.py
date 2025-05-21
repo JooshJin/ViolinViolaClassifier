@@ -55,24 +55,32 @@ def download_full_audio_api(ids: dict, out_dir: str, sr: int = 22050):
 
 def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, fps: int = 30, sr: int = 22050):
     """
-    Load whichever <video_id>.<ext> exists, slice by timestamp in seconds, write .wav clips.
+    Slice full WAVs into timestamped segments and save into out_dir/category/vid_index.wav
+    Prints a message for each segment saved or skipped.
     """
     os.makedirs(out_dir, exist_ok=True)
-    for cat in ids:
-        in_cat = Path(raw_dir)/cat
-        out_cat = Path(out_dir)/cat
-        out_cat.mkdir(parents=True, exist_ok=True)
-        for vid in ids[cat]:
-            full_path = in_cat/f"{vid}.wav"      
-            if not full_path.exists(): continue
+    for category in ids:
+        full_dir = Path(raw_dir) / category
+        seg_dir  = Path(out_dir) / category
+        seg_dir.mkdir(parents=True, exist_ok=True)
+        for vid in ids[category]:
+            full_path = full_dir / f"{vid}.wav"
+            if not full_path.exists():
+                print(f"Raw audio not found for {vid}, skipping segments.")
+                continue
             audio, _ = librosa.load(full_path, sr=sr)
-            for i, (start_s, end_s) in enumerate(stamps[cat][vid]):
+            for i, (sf_, ef_) in enumerate(stamps[category].get(vid, [])):
+                start_s = sf_ / fps
+                end_s   = ef_ / fps
                 start_i = int(start_s * sr)
-                end_i   = int(end_s   * sr)
+                end_i   = int(end_s * sr)
                 clip    = audio[start_i:end_i]
-                out_path= out_cat/f"{vid}_{i}.wav"
-                if not out_path.exists():
-                    sf.write(out_path, clip, sr)
+                out_path = seg_dir / f"{vid}_{i}.wav"
+                if out_path.exists():
+                    print(f"Skipping existing segment: {out_path.name}")
+                    continue
+                sf.write(out_path, clip, sr)
+                print(f"Saved {out_path.name} [{start_s:.2f}s–{end_s:.2f}s]")
 
 
 def load_processed_dataset(proc_dir: str):
