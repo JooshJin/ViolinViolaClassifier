@@ -80,7 +80,22 @@ def segment_audio(ids: dict, stamps: dict, raw_dir: str, out_dir: str, sr: int =
                     continue
                 sf.write(outp, clip, sr)
                 print(f"Saved {outp.name} [{start_sec:.1f}s–{end_sec:.1f}s]")
-
+                
+# Moved from main noteboook
+def segment_stems(src_dir, dst_dir, sr=22050, clip_dur=5.0):
+    os.makedirs(dst_dir, exist_ok=True)
+    clip_len = int(sr * clip_dur)
+    for wav_path in glob.glob(f"{src_dir}/*.wav"):
+        audio, _ = librosa.load(wav_path, sr=sr)
+        n_clips = (len(audio) + clip_len - 1) // clip_len  # ceil division
+        base = os.path.splitext(os.path.basename(wav_path))[0]
+        for i in range(n_clips):
+            start = i * clip_len
+            end   = min(start + clip_len, len(audio))
+            clip  = audio[start:end]
+            outp  = os.path.join(dst_dir, f"{base}_{i}.wav")
+            if not os.path.exists(outp):
+                sf.write(outp, clip, sr)
 
 def load_processed_dataset(proc_dir: str):
     """
