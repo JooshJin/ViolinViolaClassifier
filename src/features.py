@@ -4,19 +4,17 @@ import numpy as np
 import librosa
 
 def extract_mfcc(audio: np.ndarray, sr: int, n_mfcc: int = 13):
-    mfcc = librosa.feature.mfcc(audio, sr=sr, n_mfcc=n_mfcc)
+    mfcc = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=n_mfcc)
     return np.hstack((mfcc.mean(axis=1), mfcc.std(axis=1)))
 
-
 def extract_chroma(audio: np.ndarray, sr: int):
-    chroma = librosa.feature.chroma_stft(audio, sr=sr)
+    chroma = librosa.feature.chroma_stft(y=audio, sr=sr)
     return np.hstack((chroma.mean(axis=1), chroma.std(axis=1)))
 
 
 def extract_spectral_contrast(audio: np.ndarray, sr: int):
-    spec = librosa.feature.spectral_contrast(audio, sr=sr)
+    spec = librosa.feature.spectral_contrast(y=audio, sr=sr)
     return np.hstack((spec.mean(axis=1), spec.std(axis=1)))
-
 
 def extract_features_folder(folder: str, sr: int = 22050, clip_duration: float = 5.0):
     """
