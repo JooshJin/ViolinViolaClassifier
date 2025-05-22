@@ -1,6 +1,7 @@
 # ViolinViolaClassifier
 
 **Yale University CPSC 381 Final Project**
+
 **Author:** Joshua Jin
 
 ---
