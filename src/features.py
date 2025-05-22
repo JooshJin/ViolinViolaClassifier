@@ -16,7 +16,7 @@ def extract_spectral_contrast(audio: np.ndarray, sr: int):
     spec = librosa.feature.spectral_contrast(y=audio, sr=sr)
     return np.hstack((spec.mean(axis=1), spec.std(axis=1)))
 
-def extract_features_folder(folder: str, sr: int = 22050, clip_duration: float = 5.0, min_rms: float = 1e-4):
+def extract_features_folder(folder: str, sr: int = 22050, clip_duration: float = 10.0, min_rms: float = 1e-4):
     """
     Iterate through processed WAVs in folder/category and extract features 
     

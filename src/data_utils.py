@@ -100,7 +100,7 @@ def segment_stems(src_dir, dst_dir, sr=22050, clip_dur=10.0):
 def load_processed_dataset(proc_dir: str):
     """
     Load WAV clips from proc_dir/category into X (audio arrays) and y (labels)
-    Categories mapped alphabetically.
+    Categories mapped alphabetically
     """
     X, y = [], []
     label_map = {cat: idx for idx, cat in enumerate(sorted(os.listdir(proc_dir)))}
