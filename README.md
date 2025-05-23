@@ -92,7 +92,7 @@ ERROR: [youtube] JrNn2Ns7k-g: Sign in to confirm you’re not a bot. Use --cooki
 
 ### Google Colab
 
-1. Open `vv_classifier_main_pipeline_final.ipynb` in Colab. 
+1. Open `VVclassifier_main_pipeline.ipynb` in Colab. 
 
 Can be anywhere in your drive, preferably a non-Yale or other high-security Google account, as that can cause issues with retrieving the solos dataset on Youtube. See [Solos Dataset](#2.-Solos-Dataset)
 

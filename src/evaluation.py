@@ -5,8 +5,6 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, con
 def train_test_split_and_evaluate(X, y, clf, test_size=0.2, random_state=42):
     """
     Split X/y, fit classifier, return metrics dict
-
-    If any class has fewer than 2 samples, perform a random split without stratification.
     """
     from sklearn.model_selection import train_test_split
     # Determine if stratification is possible
