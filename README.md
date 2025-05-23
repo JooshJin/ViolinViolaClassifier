@@ -19,9 +19,11 @@
 
 ## Overview
 
-This repository contains the code for a violin vs. viola audio classification pipeline. It combines two datasets—the Solos dataset (scraped and extended) and the URMP dataset (violin and viola WAV files)—to train a machine learning model that can distinguish between violin and viola recordings.
+This repository contains the code for a violin vs. viola audio classification pipeline. It combines two datasets—the Solos dataset (scraped and extended) and the URMP dataset (violin and viola WAV files)—to train three machine learning model that can distinguish between violin and viola recordings.
 
-The pipeline includes data download, segmentation, feature extraction, model training, evaluation, and upload-based classification in Google Colab.
+The pipeline includes data download, segmentation, feature extraction, model training, evaluation, and a upload-based classification demo in Google Colab.
+
+Below are the instructions to install all dependencies and run the project
 
 ---
 
@@ -52,7 +54,10 @@ joblib version: 1.5.0
 
 ## Data Preparation
 
-### 1) URMP Dataset (Violin & Viola recordings)
+### **DOWNLOAD AND RUN EVERYTHING IN A NON-YALE GOOGLE DRIVE AND COLAB IF POSSIBLE**
+#### Some issues occur especially during the Solos Dataset download because of Yale's security, and cookies extension don't work on Yale Google accounts.
+
+### 1. URMP Dataset (Violin & Viola recordings)
 
 link to folders in drive (only when downloading from github, not applicable for class submission): [https://drive.google.com/drive/folders/1yqhQIs22p_8s-hsgIW2-WbmEn3FSZfF7?usp=sharing](https://drive.google.com/drive/folders/1yqhQIs22p_8s-hsgIW2-WbmEn3FSZfF7?usp=sharing)
 
@@ -73,9 +78,11 @@ link to folders in drive (only when downloading from github, not applicable for 
    !cp -r "/content/drive/My Drive/ViolinViolaData/Viola-URMP/"*  data/raw/Viola_URMP/
    ```
 
-### 2) Solos Dataset (YouTube recordings)
-
-1. Ensure you are logged into YouTube (needed for manifest download).
+### 2. Solos Dataset (YouTube recordings)
+1. Ensure you are logged into YouTube (needed for manifest download,  or else you get the error message).
+```
+ERROR: [youtube] JrNn2Ns7k-g: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+```
 2. Use the provided manifest loader to fetch audio URLs and metadata from YouTube.
 3. The pipeline script will download, segment, and process the Solos recordings.
 
@@ -85,8 +92,11 @@ link to folders in drive (only when downloading from github, not applicable for 
 
 ### Google Colab
 
-1. Open `vv_classifier_main_pipeline.ipynb` in Colab.
-2. Run the cells in order, ensuring you mount Drive and log into YouTube when prompted.
+1. Open `vv_classifier_main_pipeline_final.ipynb` in Colab. 
+
+Can be anywhere in your drive, preferably a non-Yale or other high-security Google account, as that can cause issues with retrieving the solos dataset on Youtube. See [Solos Dataset](#2.-Solos-Dataset)
+
+2. Run the cells in order, ensuring you mount Drive and log into YouTube beforehand.
 
 ---
 
